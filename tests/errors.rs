@@ -172,7 +172,7 @@ fn errors() {
     );
     error_helper!(
         "fuzz8.over",
-        "Invalid character \'\\\"\' for value at line 34, column 3"
+        "Invalid character \'\"\' for value at line 34, column 3"
     );
     error_helper!(
         "fuzz9.over",
@@ -195,7 +195,7 @@ fn errors() {
     );
     error_helper!(
         "include1.over",
-        "Invalid character \'\\\"\' for value at line 1, column 14"
+        "Invalid character \'\"\' for value at line 1, column 14"
     );
     error_helper!(
         "include2.over",
