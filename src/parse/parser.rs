@@ -58,7 +58,7 @@ pub fn parse_obj_str(contents: &str) -> ParseResult<Obj> {
 
 // Parses an Obj given a character stream.
 #[inline]
-fn parse_obj_stream(mut stream: CharStream, mut included: &mut IncludedMap) -> ParseResult<Obj> {
+fn parse_obj_stream(mut stream: CharStream, included: &mut IncludedMap) -> ParseResult<Obj> {
     let mut obj_pairs: Pairs = Default::default();
 
     // Go to the first non-whitespace character, or return if there is none.
@@ -74,7 +74,7 @@ fn parse_obj_stream(mut stream: CharStream, mut included: &mut IncludedMap) -> P
         &mut stream,
         &mut obj_pairs,
         &mut globals,
-        &mut included,
+        included,
         &mut parent,
         1,
         None,
@@ -85,9 +85,9 @@ fn parse_obj_stream(mut stream: CharStream, mut included: &mut IncludedMap) -> P
 
 // Parses a sub-Obj in a file. It *must* start with { and end with }.
 fn parse_obj(
-    mut stream: &mut CharStream,
+    stream: &mut CharStream,
     globals: &mut GlobalMap,
-    mut included: &mut IncludedMap,
+    included: &mut IncludedMap,
     depth: usize,
 ) -> ParseResult<Value> {
     // Check depth.
@@ -109,10 +109,10 @@ fn parse_obj(
 
     // Parse field/value pairs.
     while parse_field_value_pair(
-        &mut stream,
+        stream,
         &mut obj_pairs,
         globals,
-        &mut included,
+        included,
         &mut parent,
         depth,
         Some('}'),
@@ -125,10 +125,10 @@ fn parse_obj(
 // Parses a field/value pair.
 #[inline]
 fn parse_field_value_pair(
-    mut stream: &mut CharStream,
+    stream: &mut CharStream,
     obj_pairs: &mut Pairs,
-    mut globals: &mut GlobalMap,
-    mut included: &mut IncludedMap,
+    globals: &mut GlobalMap,
+    included: &mut IncludedMap,
     parent: &mut Option<Obj>,
     depth: usize,
     cur_brace: Option<char>,
@@ -190,15 +190,7 @@ fn parse_field_value_pair(
     // At a non-whitespace character, parse value.
     let (value_line, value_col) = (stream.line(), stream.col());
     let value = parse_value(
-        &mut stream,
-        obj_pairs,
-        &mut globals,
-        &mut included,
-        value_line,
-        value_col,
-        depth,
-        cur_brace,
-        true,
+        stream, obj_pairs, globals, included, value_line, value_col, depth, cur_brace, true,
     )?;
 
     // Add value either to the globals map or to the current Obj.
@@ -229,7 +221,7 @@ fn parse_field_value_pair(
 }
 
 // Parses an Arr given a file.
-fn parse_arr_file(path: &str, mut included: &mut IncludedMap) -> ParseResult<Arr> {
+fn parse_arr_file(path: &str, included: &mut IncludedMap) -> ParseResult<Arr> {
     let mut stream = CharStream::from_file(path)?;
 
     let obj_pairs: Pairs = Default::default();
@@ -251,7 +243,7 @@ fn parse_arr_file(path: &str, mut included: &mut IncludedMap) -> ParseResult<Arr
             &mut stream,
             &obj_pairs,
             &mut globals,
-            &mut included,
+            included,
             value_line,
             value_col,
             1,
@@ -291,10 +283,10 @@ fn parse_arr_file(path: &str, mut included: &mut IncludedMap) -> ParseResult<Arr
 
 // Parses a sub-Arr in a file. It *must* start with [ and end with ].
 fn parse_arr(
-    mut stream: &mut CharStream,
+    stream: &mut CharStream,
     obj_pairs: &[Pair],
-    mut globals: &mut GlobalMap,
-    mut included: &mut IncludedMap,
+    globals: &mut GlobalMap,
+    included: &mut IncludedMap,
     depth: usize,
 ) -> ParseResult<Value> {
     // Check depth.
@@ -330,10 +322,10 @@ fn parse_arr(
         // At a non-whitespace character, parse value.
         let (value_line, value_col) = (stream.line(), stream.col());
         let value = parse_value(
-            &mut stream,
+            stream,
             obj_pairs,
-            &mut globals,
-            &mut included,
+            globals,
+            included,
             value_line,
             value_col,
             depth,
@@ -372,7 +364,7 @@ fn parse_arr(
 }
 
 // Parses a Tup given a file.
-fn parse_tup_file(path: &str, mut included: &mut IncludedMap) -> ParseResult<Tup> {
+fn parse_tup_file(path: &str, included: &mut IncludedMap) -> ParseResult<Tup> {
     let mut stream = CharStream::from_file(path)?;
 
     let mut vec: Vec<Value> = Default::default();
@@ -391,7 +383,7 @@ fn parse_tup_file(path: &str, mut included: &mut IncludedMap) -> ParseResult<Tup
             &mut stream,
             &obj_pairs,
             &mut globals,
-            &mut included,
+            included,
             value_line,
             value_col,
             1,
@@ -407,10 +399,10 @@ fn parse_tup_file(path: &str, mut included: &mut IncludedMap) -> ParseResult<Tup
 
 // Parses a sub-Tup in a file. It *must* start with ( and end with ).
 fn parse_tup(
-    mut stream: &mut CharStream,
+    stream: &mut CharStream,
     obj_pairs: &[Pair],
-    mut globals: &mut GlobalMap,
-    mut included: &mut IncludedMap,
+    globals: &mut GlobalMap,
+    included: &mut IncludedMap,
     depth: usize,
 ) -> ParseResult<Value> {
     // Check depth.
@@ -444,10 +436,10 @@ fn parse_tup(
         // At a non-whitespace character, parse value.
         let (value_line, value_col) = (stream.line(), stream.col());
         let value = parse_value(
-            &mut stream,
+            stream,
             obj_pairs,
-            &mut globals,
-            &mut included,
+            globals,
+            included,
             value_line,
             value_col,
             depth,
@@ -527,10 +519,10 @@ fn parse_field(
 
 // Gets the next value in the char stream.
 fn parse_value(
-    mut stream: &mut CharStream,
+    stream: &mut CharStream,
     obj_pairs: &[Pair],
-    mut globals: &mut GlobalMap,
-    mut included: &mut IncludedMap,
+    globals: &mut GlobalMap,
+    included: &mut IncludedMap,
     line: usize,
     col: usize,
     depth: usize,
@@ -539,19 +531,13 @@ fn parse_value(
 ) -> ParseResult<Value> {
     // Peek to determine what kind of value we'll be parsing.
     let res = match stream.peek().unwrap() {
-        '"' => parse_str(&mut stream)?,
-        '{' => parse_obj(&mut stream, &mut globals, included, depth + 1)?,
-        '[' => parse_arr(&mut stream, obj_pairs, &mut globals, included, depth + 1)?,
-        '(' => parse_tup(&mut stream, obj_pairs, &mut globals, included, depth + 1)?,
-        '<' => parse_include(
-            &mut stream,
-            obj_pairs,
-            &mut globals,
-            &mut included,
-            depth + 1,
-        )?,
+        '"' => parse_str(stream)?,
+        '{' => parse_obj(stream, globals, included, depth + 1)?,
+        '[' => parse_arr(stream, obj_pairs, globals, included, depth + 1)?,
+        '(' => parse_tup(stream, obj_pairs, globals, included, depth + 1)?,
+        '<' => parse_include(stream, obj_pairs, globals, included, depth + 1)?,
         '+' => parse_unary_op(
-            &mut stream,
+            stream,
             obj_pairs,
             globals,
             included,
@@ -560,7 +546,7 @@ fn parse_value(
             UnaryOp::Plus,
         )?,
         '-' => parse_unary_op(
-            &mut stream,
+            stream,
             obj_pairs,
             globals,
             included,
@@ -568,16 +554,9 @@ fn parse_value(
             cur_brace,
             UnaryOp::Minus,
         )?,
-        ch if is_numeric_char(ch) => parse_numeric(&mut stream, line, col)?,
+        ch if is_numeric_char(ch) => parse_numeric(stream, line, col)?,
         ch if Obj::is_valid_field_char(ch, true) || ch == '@' => parse_variable(
-            &mut stream,
-            obj_pairs,
-            globals,
-            included,
-            line,
-            col,
-            depth,
-            cur_brace,
+            stream, obj_pairs, globals, included, line, col, depth, cur_brace,
         )?,
         ch => {
             return parse_err(stream.file(), InvalidValueChar(ch, line, col));
@@ -601,15 +580,7 @@ fn parse_value(
 
                 // Parse another value.
                 let val2 = parse_value(
-                    &mut stream,
-                    obj_pairs,
-                    &mut globals,
-                    &mut included,
-                    line2,
-                    col2,
-                    depth,
-                    cur_brace,
-                    false,
+                    stream, obj_pairs, globals, included, line2, col2, depth, cur_brace, false,
                 )?;
 
                 if op.is_priority() {
@@ -648,10 +619,10 @@ fn parse_value(
 }
 
 fn parse_unary_op(
-    mut stream: &mut CharStream,
+    stream: &mut CharStream,
     obj_pairs: &[Pair],
-    mut globals: &mut GlobalMap,
-    mut included: &mut IncludedMap,
+    globals: &mut GlobalMap,
+    included: &mut IncludedMap,
     depth: usize,
     cur_brace: Option<char>,
     op: UnaryOp,
@@ -666,10 +637,10 @@ fn parse_unary_op(
 
     let res = match stream.peek() {
         Some(_) => parse_value(
-            &mut stream,
+            stream,
             obj_pairs,
-            &mut globals,
-            &mut included,
+            globals,
+            included,
             line,
             col,
             depth + 1,
@@ -769,10 +740,10 @@ fn parse_numeric(stream: &mut CharStream, line: usize, col: usize) -> ParseResul
 
 // Parses a variable name and gets a value from the corresponding variable.
 fn parse_variable(
-    mut stream: &mut CharStream,
+    stream: &mut CharStream,
     obj_pairs: &[Pair],
-    mut globals: &mut GlobalMap,
-    mut included: &mut IncludedMap,
+    globals: &mut GlobalMap,
+    included: &mut IncludedMap,
     line: usize,
     col: usize,
     depth: usize,
@@ -862,10 +833,10 @@ fn parse_variable(
             Value::Arr(arr) => {
                 let (line, col) = (stream.line(), stream.col());
                 let value = parse_value(
-                    &mut stream,
+                    stream,
                     obj_pairs,
-                    &mut globals,
-                    &mut included,
+                    globals,
+                    included,
                     line,
                     col,
                     depth + 1,
@@ -891,10 +862,10 @@ fn parse_variable(
             Value::Tup(tup) => {
                 let (line, col) = (stream.line(), stream.col());
                 let value = parse_value(
-                    &mut stream,
+                    stream,
                     obj_pairs,
-                    &mut globals,
-                    &mut included,
+                    globals,
+                    included,
                     line,
                     col,
                     depth + 1,
@@ -925,7 +896,7 @@ fn parse_variable(
                 }
 
                 parse_variable(
-                    &mut stream,
+                    stream,
                     obj.pairs_ref(),
                     globals,
                     included,
@@ -989,10 +960,10 @@ fn parse_str(stream: &mut CharStream) -> ParseResult<Value> {
 }
 
 fn parse_include(
-    mut stream: &mut CharStream,
+    stream: &mut CharStream,
     obj_pairs: &[Pair],
-    mut globals: &mut GlobalMap,
-    mut included: &mut IncludedMap,
+    globals: &mut GlobalMap,
+    included: &mut IncludedMap,
     depth: usize,
 ) -> ParseResult<Value> {
     enum IncludeType {
@@ -1017,10 +988,10 @@ fn parse_include(
 
     let (mut line, mut col) = (stream.line(), stream.col());
     let mut value = parse_value(
-        &mut stream,
+        stream,
         obj_pairs,
-        &mut globals,
-        &mut included,
+        globals,
+        included,
         line,
         col,
         depth,
@@ -1053,10 +1024,10 @@ fn parse_include(
         line = stream.line();
         col = stream.col();
         value = parse_value(
-            &mut stream,
+            stream,
             obj_pairs,
-            &mut globals,
-            &mut included,
+            globals,
+            included,
             line,
             col,
             depth,

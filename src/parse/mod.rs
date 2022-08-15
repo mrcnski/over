@@ -25,7 +25,7 @@ pub fn load_from_str(contents: &str) -> ParseResult<Obj> {
     parser::parse_obj_str(contents)
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum UnaryOp {
     Plus,
     Minus,
@@ -44,7 +44,7 @@ impl fmt::Display for UnaryOp {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum BinaryOp {
     Plus,
     Minus,

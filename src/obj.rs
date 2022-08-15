@@ -40,16 +40,14 @@ macro_rules! get_fn {
         #[doc=$doc]
         pub fn $name(&self, field: &str) -> OverResult<$type> {
             match self.get(field) {
-                Some(value) => {
-                    match value.$name() {
-                        Ok(result) => Ok(result),
-                        e @ Err(_) => e,
-                    }
-                }
+                Some(value) => match value.$name() {
+                    Ok(result) => Ok(result),
+                    e @ Err(_) => e,
+                },
                 None => Err(OverError::FieldNotFound(field.into())),
             }
         }
-    }
+    };
 }
 
 impl Obj {
@@ -246,10 +244,7 @@ impl Obj {
 
     /// Returns the parent for this `Obj`.
     pub fn get_parent(&self) -> Option<Self> {
-        match self.inner.parent {
-            Some(ref parent) => Some(parent.clone()),
-            None => None,
-        }
+        self.inner.parent.as_ref().cloned()
     }
 
     /// An iterator visiting all field-value pairs in order.

@@ -43,7 +43,7 @@ macro_rules! get_fn {
                 Err(OverError::TypeMismatch(Type::$variant, self.get_type()))
             }
         }
-    }
+    };
 }
 
 impl Value {

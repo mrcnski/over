@@ -59,10 +59,7 @@ impl CharStream {
         let mut inner = self.inner.borrow_mut();
         let opt = inner.stream.peek();
 
-        match opt {
-            Some(ch) => Some(*ch),
-            None => None,
-        }
+        opt.copied()
     }
 
     pub fn file(&self) -> Option<String> {

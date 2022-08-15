@@ -111,7 +111,7 @@ impl Type {
         match *self {
             Self::Any => true,
             Self::Arr(ref t) => Self::has_any(t),
-            Self::Tup(ref tvec) => tvec.iter().any(|t| Self::has_any(t)),
+            Self::Tup(ref tvec) => tvec.iter().any(Self::has_any),
             _ => false,
         }
     }
