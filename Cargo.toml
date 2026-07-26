@@ -12,7 +12,7 @@ keywords = [
 license = "MIT"
 name = "over"
 readme = "README.md"
-repository = "https://github.com/m-cat/over"
+repository = "https://github.com/mrcnski/over"
 version = "0.6.5"
 
 edition = "2018"
@@ -24,4 +24,9 @@ num-rational = "0.2"
 num-traits = "0.2"
 
 [dev-dependencies]
+criterion = "0.5"
 pretty_assertions = "0.6"
+
+[[bench]]
+name = "parse"
+harness = false

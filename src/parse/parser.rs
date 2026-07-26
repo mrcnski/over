@@ -68,11 +68,13 @@ fn parse_obj_stream(mut stream: CharStream, included: &mut IncludedMap) -> Parse
 
     let mut globals: GlobalMap = Default::default();
     let mut parent = None;
+    let mut seen_fields: HashSet<String> = Default::default();
 
     // Parse all field/value pairs for this Obj.
     while parse_field_value_pair(
         &mut stream,
         &mut obj_pairs,
+        &mut seen_fields,
         &mut globals,
         included,
         &mut parent,
@@ -106,11 +108,13 @@ fn parse_obj(
 
     let mut obj_pairs: Pairs = Default::default();
     let mut parent = None;
+    let mut seen_fields: HashSet<String> = Default::default();
 
     // Parse field/value pairs.
     while parse_field_value_pair(
         stream,
         &mut obj_pairs,
+        &mut seen_fields,
         globals,
         included,
         &mut parent,
@@ -127,6 +131,7 @@ fn parse_obj(
 fn parse_field_value_pair(
     stream: &mut CharStream,
     obj_pairs: &mut Pairs,
+    seen_fields: &mut HashSet<String>,
     globals: &mut GlobalMap,
     included: &mut IncludedMap,
     parent: &mut Option<Obj>,
@@ -170,10 +175,7 @@ fn parse_field_value_pair(
             }
         }
         FieldType::Regular => {
-            if obj_pairs
-                .iter()
-                .any(|Pair(ref field, _)| *field == field_name)
-            {
+            if seen_fields.contains(&field_name) {
                 return parse_err(
                     stream.file(),
                     DuplicateField(field_name, field_line, field_col),
@@ -205,6 +207,7 @@ fn parse_field_value_pair(
             *parent = Some(par);
         }
         FieldType::Regular => {
+            seen_fields.insert(field_name.clone());
             obj_pairs.push(Pair(field_name, value));
         }
     }
@@ -498,23 +501,23 @@ fn parse_field(
     }
 
     // Check for invalid field names.
-    match field.as_str() {
-        _field_str if is_reserved(_field_str) => {
-            parse_err(stream.file(), InvalidFieldName(field.clone(), line, col))
-        }
-        "^" => Ok((field.clone(), FieldType::Parent)),
-        bad if bad.starts_with('^') => {
-            parse_err(stream.file(), InvalidFieldName(field.clone(), line, col))
-        }
-        _ => Ok((
-            field.clone(),
-            if is_global {
-                FieldType::Global
-            } else {
-                FieldType::Regular
-            },
-        )),
+    if is_reserved(&field) {
+        return parse_err(stream.file(), InvalidFieldName(field, line, col));
     }
+    if field == "^" {
+        return Ok((field, FieldType::Parent));
+    }
+    if field.starts_with('^') {
+        return parse_err(stream.file(), InvalidFieldName(field, line, col));
+    }
+    Ok((
+        field,
+        if is_global {
+            FieldType::Global
+        } else {
+            FieldType::Regular
+        },
+    ))
 }
 
 // Gets the next value in the char stream.
@@ -565,6 +568,15 @@ fn parse_value(
 
     // Process operations if this is the first value.
     if is_first {
+        // Fast path: no operator follows the value, so no operation processing is needed.
+        match stream.peek() {
+            Some(ch) if BinaryOp::get_op(ch).is_some() => (),
+            _ => {
+                check_value_end(stream, cur_brace)?;
+                return Ok(res);
+            }
+        }
+
         let mut val_deque: VecDeque<(Value, usize, usize)> = VecDeque::new();
         let mut op_deque: VecDeque<BinaryOp> = VecDeque::new();
         val_deque.push_back((res, line, col));
@@ -713,7 +725,7 @@ fn parse_numeric(stream: &mut CharStream, line: usize, col: usize) -> ParseResul
         let whole: BigInt = if s1.is_empty() {
             0u8.into()
         } else {
-            s1.parse()?
+            digits_to_bigint(&s1)?
         };
 
         // Remove trailing zeros.
@@ -722,7 +734,7 @@ fn parse_numeric(stream: &mut CharStream, line: usize, col: usize) -> ParseResul
         let (decimal, dec_len): (BigInt, usize) = if s2.is_empty() {
             (0u8.into(), 1)
         } else {
-            (s2.parse()?, s2.len())
+            (digits_to_bigint(s2)?, s2.len())
         };
 
         let f = frac_from_whole_and_dec(whole, decimal, dec_len);
@@ -733,9 +745,20 @@ fn parse_numeric(stream: &mut CharStream, line: usize, col: usize) -> ParseResul
             return parse_err(stream.file(), InvalidNumeric(line, col));
         }
 
-        let i: BigInt = s1.parse()?;
+        let i: BigInt = digits_to_bigint(&s1)?;
         Ok(i.into())
     }
+}
+
+// Parses a string of ASCII digits into a `BigInt`, taking a fast path via `i64` when the number
+// is small enough to fit.
+fn digits_to_bigint(s: &str) -> Result<BigInt, num_bigint::ParseBigIntError> {
+    if s.len() <= 18 {
+        if let Ok(i) = s.parse::<i64>() {
+            return Ok(i.into());
+        }
+    }
+    s.parse()
 }
 
 // Parses a variable name and gets a value from the corresponding variable.

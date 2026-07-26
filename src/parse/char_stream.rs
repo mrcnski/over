@@ -4,17 +4,15 @@ use std::{
     cell::RefCell,
     fs::File,
     io::{self, Read},
-    iter::Peekable,
-    mem,
     rc::Rc,
-    str::Chars,
 };
 
 #[derive(Clone, Debug)]
 struct Inner {
     file: Option<String>,
     contents: String,
-    stream: Peekable<Chars<'static>>,
+    // Current byte position in `contents`.
+    pos: usize,
     line: usize,
     col: usize,
 }
@@ -41,14 +39,11 @@ impl CharStream {
     }
 
     fn from_string_impl(file: Option<String>, contents: String) -> io::Result<CharStream> {
-        let chars: Chars = unsafe { mem::transmute(contents.chars()) };
-        let stream = chars.peekable();
-
         Ok(CharStream {
             inner: Rc::new(RefCell::new(Inner {
                 file,
                 contents,
-                stream,
+                pos: 0,
                 line: 1,
                 col: 1,
             })),
@@ -56,10 +51,8 @@ impl CharStream {
     }
 
     pub fn peek(&self) -> Option<char> {
-        let mut inner = self.inner.borrow_mut();
-        let opt = inner.stream.peek();
-
-        opt.copied()
+        let inner = self.inner.borrow();
+        inner.contents[inner.pos..].chars().next()
     }
 
     pub fn file(&self) -> Option<String> {
@@ -76,40 +69,24 @@ impl CharStream {
         let inner = self.inner.borrow();
         inner.col
     }
-
-    fn set_line(&mut self, value: usize) {
-        let mut inner = self.inner.borrow_mut();
-        inner.line = value;
-    }
-
-    fn set_col(&mut self, value: usize) {
-        let mut inner = self.inner.borrow_mut();
-        inner.col = value;
-    }
 }
 
 impl Iterator for CharStream {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let opt = {
-            let mut inner = self.inner.borrow_mut();
-            inner.stream.next()
-        };
+        let mut inner = self.inner.borrow_mut();
 
-        match opt {
-            Some(ch) => {
-                if ch == '\n' {
-                    let line = self.line();
-                    self.set_line(line + 1);
-                    self.set_col(1);
-                } else {
-                    let col = self.col();
-                    self.set_col(col + 1);
-                }
-                Some(ch)
-            }
-            None => None,
+        let ch = inner.contents[inner.pos..].chars().next()?;
+        inner.pos += ch.len_utf8();
+
+        if ch == '\n' {
+            inner.line += 1;
+            inner.col = 1;
+        } else {
+            inner.col += 1;
         }
+
+        Some(ch)
     }
 }

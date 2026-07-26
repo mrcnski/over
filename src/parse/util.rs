@@ -65,8 +65,9 @@ pub fn is_reserved(field: &str) -> bool {
 }
 
 pub fn frac_from_whole_and_dec(whole: BigInt, decimal: BigInt, dec_len: usize) -> BigRational {
+    // whole + decimal/denom == (whole * denom + decimal) / denom, with a single reduction.
     let denom = pow(BigInt::from_u8(10).unwrap(), dec_len);
-    BigRational::new(whole, 1.into()) + BigRational::new(decimal, denom)
+    BigRational::new(whole * &denom + decimal, denom)
 }
 
 /// Reads a file and returns its contents in a string.
