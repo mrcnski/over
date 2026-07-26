@@ -1,12 +1,12 @@
 # OVER
 
-[![Build Status](https://travis-ci.com/m-cat/over.svg?branch=master)](https://travis-ci.com/m-cat/over)
+[![Build Status](https://travis-ci.com/mrcnski/over.svg?branch=master)](https://travis-ci.com/mrcnski/over)
 [![crates.io](https://img.shields.io/crates/v/over.svg)](https://crates.io/crates/over)
 [![Downloads](https://img.shields.io/crates/d/over.svg)](https://crates.io/crates/over)
 [![Documentation](https://docs.rs/over/badge.svg)](https://docs.rs/over)
-[![Issues](https://img.shields.io/github/issues-raw/m-cat/over.svg)](https://github.com/m-cat/over/issues)
-[![LoC](https://tokei.rs/b1/github/m-cat/over)](https://github.com/m-cat/over)
-[![Coverage Status](https://coveralls.io/repos/github/m-cat/over/badge.svg?branch=master)](https://coveralls.io/github/m-cat/over?branch=master)
+[![Issues](https://img.shields.io/github/issues-raw/mrcnski/over.svg)](https://github.com/mrcnski/over/issues)
+[![LoC](https://tokei.rs/b1/github/mrcnski/over)](https://github.com/mrcnski/over)
+[![Coverage Status](https://coveralls.io/repos/github/mrcnski/over/badge.svg?branch=master)](https://coveralls.io/github/mrcnski/over?branch=master)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 OVER: a data format similar to JSON with features such as variables, includes, and type safety.
