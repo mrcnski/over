@@ -62,7 +62,7 @@ fn parse_obj_stream(mut stream: CharStream, included: &mut IncludedMap) -> Parse
     let mut obj_pairs: Pairs = Default::default();
 
     // Go to the first non-whitespace character, or return if there is none.
-    if !find_char(stream.clone()) {
+    if !stream.skip_whitespace() {
         return Ok(Obj::from_pairs_unchecked(obj_pairs, None));
     }
 
@@ -102,7 +102,7 @@ fn parse_obj(
     assert_eq!(ch, '{');
 
     // Go to the first non-whitespace character, or error if there is none.
-    if !find_char(stream.clone()) {
+    if !stream.skip_whitespace() {
         return parse_err(stream.file(), UnexpectedEnd(stream.line()));
     }
 
@@ -185,7 +185,7 @@ fn parse_field_value_pair(
     }
 
     // Deal with extra whitespace between field and value.
-    if !find_char(stream.clone()) {
+    if !stream.skip_whitespace() {
         return parse_err(stream.file(), UnexpectedEnd(stream.line()));
     }
 
@@ -213,7 +213,7 @@ fn parse_field_value_pair(
     }
 
     // Go to the next non-whitespace character.
-    if !find_char(stream.clone()) {
+    if !stream.skip_whitespace() {
         match cur_brace {
             Some(_) => return parse_err(stream.file(), UnexpectedEnd(stream.line())),
             None => return Ok(false),
@@ -236,7 +236,7 @@ fn parse_arr_file(path: &str, included: &mut IncludedMap) -> ParseResult<Arr> {
 
     loop {
         // Go to the first non-whitespace character, or error if there is none.
-        if !find_char(stream.clone()) {
+        if !stream.skip_whitespace() {
             break;
         }
 
@@ -307,7 +307,7 @@ fn parse_arr(
 
     loop {
         // Go to the first non-whitespace character, or error if there is none.
-        if !find_char(stream.clone()) {
+        if !stream.skip_whitespace() {
             return parse_err(stream.file(), UnexpectedEnd(stream.line()));
         }
 
@@ -376,7 +376,7 @@ fn parse_tup_file(path: &str, included: &mut IncludedMap) -> ParseResult<Tup> {
 
     loop {
         // Go to the first non-whitespace character, or error if there is none.
-        if !find_char(stream.clone()) {
+        if !stream.skip_whitespace() {
             break;
         }
 
@@ -421,7 +421,7 @@ fn parse_tup(
 
     loop {
         // Go to the first non-whitespace character, or error if there is none.
-        if !find_char(stream.clone()) {
+        if !stream.skip_whitespace() {
             return parse_err(stream.file(), UnexpectedEnd(stream.line()));
         }
 
@@ -1008,7 +1008,7 @@ fn parse_include(
     assert_eq!(ch, '<');
 
     // Go to the next non-whitespace character, or error if there is none.
-    if !find_char(stream.clone()) {
+    if !stream.skip_whitespace() {
         return parse_err(stream.file(), UnexpectedEnd(stream.line()));
     }
 
@@ -1043,7 +1043,7 @@ fn parse_include(
 
     if parse_again {
         // Go to the next non-whitespace character, or error if there is none.
-        if !find_char(stream.clone()) {
+        if !stream.skip_whitespace() {
             return parse_err(stream.file(), UnexpectedEnd(stream.line()));
         }
 
@@ -1063,7 +1063,7 @@ fn parse_include(
     }
 
     // Go to the next non-whitespace character, or error if there is none.
-    if !find_char(stream.clone()) {
+    if !stream.skip_whitespace() {
         return parse_err(stream.file(), UnexpectedEnd(stream.line()));
     }
 
@@ -1309,12 +1309,6 @@ fn binary_op_on_values(
             }
         },
     })
-}
-
-// Finds the next non-whitespace character, ignoring comments, and update stream position.
-// Returns true if such a character was found or false if we got to the end of the stream.
-fn find_char(mut stream: CharStream) -> bool {
-    stream.skip_whitespace()
 }
 
 // Helper function to make sure values are followed by a correct end delimiter.

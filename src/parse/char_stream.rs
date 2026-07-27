@@ -238,3 +238,41 @@ impl Iterator for CharStream {
         Some(ch)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::obj::Obj;
+
+    // take_field_chars and skip_whitespace classify bytes inline for speed instead of calling
+    // the char-level predicates (Obj::is_valid_field_char, char::is_whitespace). Verify that
+    // the two classifications agree for every char.
+    #[test]
+    fn scanners_match_char_predicates() {
+        for u in 0..=0x10FFFF_u32 {
+            let ch = match std::char::from_u32(u) {
+                Some(ch) => ch,
+                None => continue,
+            };
+            let s = ch.to_string();
+
+            let mut stream = CharStream::from_string(s.clone()).unwrap();
+            let mut out = String::new();
+            stream.take_field_chars(&mut out);
+            assert_eq!(
+                !out.is_empty(),
+                Obj::is_valid_field_char(ch, false),
+                "take_field_chars mismatch for {:?}",
+                ch
+            );
+
+            let mut stream = CharStream::from_string(s).unwrap();
+            assert_eq!(
+                stream.skip_whitespace(),
+                !(ch.is_whitespace() || ch == '#'),
+                "skip_whitespace mismatch for {:?}",
+                ch
+            );
+        }
+    }
+}
