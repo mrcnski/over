@@ -380,3 +380,20 @@ fn write() -> OverResult<()> {
 
     Ok(())
 }
+
+// Test that unicode content survives the byte-level scanning paths in the parser
+// (multibyte field names, string contents spanning lines, and values after them).
+#[test]
+fn unicode() -> OverResult<()> {
+    let src = "h\u{e9}llo_w\u{f6}rld: \"\u{591a}\u{5b57}\u{8282} \u{1f680} line one\nline tw\u{f6}\"\nna\u{ef}ve: 1_000\nafter: \"ok\\n\"";
+    let obj: Obj = src.parse()?;
+
+    assert_eq!(
+        obj.get("h\u{e9}llo_w\u{f6}rld").unwrap(),
+        "\u{591a}\u{5b57}\u{8282} \u{1f680} line one\nline tw\u{f6}"
+    );
+    assert_eq!(obj.get("na\u{ef}ve").unwrap(), 1000);
+    assert_eq!(obj.get("after").unwrap(), "ok\n");
+
+    Ok(())
+}

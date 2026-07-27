@@ -483,18 +483,26 @@ fn parse_field(
         field.push(ch);
     }
 
-    while let Some(ch) = stream.next() {
-        match ch {
-            ':' if !first => {
-                break;
-            }
-            ch if Obj::is_valid_field_char(ch, first) => field.push(ch),
-            ch => {
-                return parse_err(
-                    stream.file(),
-                    InvalidFieldChar(ch, stream.line(), stream.col() - 1),
-                );
-            }
+    loop {
+        if !first {
+            // Bulk-consume a run of valid field characters.
+            stream.take_field_chars(&mut field);
+        }
+
+        match stream.next() {
+            Some(ch) => match ch {
+                ':' if !first => {
+                    break;
+                }
+                ch if Obj::is_valid_field_char(ch, first) => field.push(ch),
+                ch => {
+                    return parse_err(
+                        stream.file(),
+                        InvalidFieldChar(ch, stream.line(), stream.col() - 1),
+                    );
+                }
+            },
+            None => break,
         }
 
         first = false;
@@ -671,16 +679,20 @@ fn parse_numeric(stream: &mut CharStream, line: usize, col: usize) -> ParseResul
     let mut dec = false;
     let mut under = false;
 
-    while let Some(ch) = stream.peek() {
+    loop {
+        // Bulk-consume a run of digits into the current number part.
+        let target = if !dec { &mut s1 } else { &mut s2 };
+        if stream.take_digits(target) > 0 {
+            under = false;
+        }
+
+        let ch = match stream.peek() {
+            Some(ch) => ch,
+            None => break,
+        };
+
         match ch {
             ch if is_value_end_char(ch) => break,
-            ch if is_digit(ch) => {
-                if !dec {
-                    s1.push(ch);
-                } else {
-                    s2.push(ch);
-                }
-            }
             '.' | ',' => {
                 if !dec {
                     dec = true;
@@ -690,6 +702,7 @@ fn parse_numeric(stream: &mut CharStream, line: usize, col: usize) -> ParseResul
                         InvalidValueChar(ch, stream.line(), stream.col()),
                     );
                 }
+                under = false;
             }
             '_' => {
                 if !under {
@@ -707,10 +720,6 @@ fn parse_numeric(stream: &mut CharStream, line: usize, col: usize) -> ParseResul
                     InvalidValueChar(ch, stream.line(), stream.col()),
                 );
             }
-        }
-
-        if ch != '_' {
-            under = false;
         }
 
         let _ = stream.next();
@@ -784,37 +793,34 @@ fn parse_variable(
         var.push(ch);
     }
 
-    while let Some(ch) = stream.peek() {
-        match ch {
-            '.' => {
-                let _ = stream.next();
-                match stream.peek() {
-                    Some('@') => dot_global = true,
-                    Some(ch) if Obj::is_valid_field_char(ch, true) || is_numeric_char(ch) => (),
-                    Some(ch) => {
-                        return parse_err(
-                            stream.file(),
-                            InvalidValueChar(ch, stream.line(), stream.col()),
-                        );
-                    }
-                    None => return parse_err(stream.file(), UnexpectedEnd(stream.line())),
-                }
+    // Bulk-consume a run of valid variable characters.
+    stream.take_field_chars(&mut var);
 
-                dot = true;
-                break;
+    match stream.peek() {
+        Some('.') => {
+            let _ = stream.next();
+            match stream.peek() {
+                Some('@') => dot_global = true,
+                Some(ch) if Obj::is_valid_field_char(ch, true) || is_numeric_char(ch) => (),
+                Some(ch) => {
+                    return parse_err(
+                        stream.file(),
+                        InvalidValueChar(ch, stream.line(), stream.col()),
+                    );
+                }
+                None => return parse_err(stream.file(), UnexpectedEnd(stream.line())),
             }
-            ch if is_value_end_char(ch) => break,
-            ch if Obj::is_valid_field_char(ch, false) => {
-                let _ = stream.next();
-                var.push(ch);
-            }
-            ch => {
-                return parse_err(
-                    stream.file(),
-                    InvalidValueChar(ch, stream.line(), stream.col()),
-                );
-            }
+
+            dot = true;
         }
+        Some(ch) if is_value_end_char(ch) => (),
+        Some(ch) => {
+            return parse_err(
+                stream.file(),
+                InvalidValueChar(ch, stream.line(), stream.col()),
+            );
+        }
+        None => (),
     }
 
     let mut value = match var.as_str() {
@@ -951,30 +957,27 @@ fn parse_str(stream: &mut CharStream) -> ParseResult<Value> {
     assert_eq!(ch, '"');
 
     let mut s = String::new();
-    let mut escape = false;
 
     loop {
+        // Bulk-consume characters up to the next escape, closing quote, or end of stream.
+        stream.take_str_span(&mut s);
+
         match stream.next() {
-            Some(ch) => {
-                if escape {
-                    match get_escape_char(ch) {
-                        Some(ch) => s.push(ch),
-                        None => {
-                            return parse_err(
-                                stream.file(),
-                                InvalidEscapeChar(ch, stream.line(), stream.col() - 1),
-                            );
-                        }
+            Some('"') => break,
+            Some('\\') => match stream.next() {
+                Some(ch) => match get_escape_char(ch) {
+                    Some(ch) => s.push(ch),
+                    None => {
+                        return parse_err(
+                            stream.file(),
+                            InvalidEscapeChar(ch, stream.line(), stream.col() - 1),
+                        );
                     }
-                    escape = false;
-                } else {
-                    match ch {
-                        '"' => break,
-                        '\\' => escape = true,
-                        _ => s.push(ch),
-                    }
-                }
-            }
+                },
+                None => return parse_err(stream.file(), UnexpectedEnd(stream.line())),
+            },
+            // `take_str_span` only stops at '"', '\\', or the end of the stream.
+            Some(_) => unreachable!(),
             None => return parse_err(stream.file(), UnexpectedEnd(stream.line())),
         }
     }
@@ -1311,28 +1314,7 @@ fn binary_op_on_values(
 // Finds the next non-whitespace character, ignoring comments, and update stream position.
 // Returns true if such a character was found or false if we got to the end of the stream.
 fn find_char(mut stream: CharStream) -> bool {
-    while let Some(ch) = stream.peek() {
-        match ch {
-            '#' => {
-                // Comment found; eat the rest of the line.
-                loop {
-                    let ch = stream.next();
-                    if ch.is_none() {
-                        return false;
-                    }
-                    if ch.unwrap() == '\n' {
-                        break;
-                    }
-                }
-            }
-            ch if ch.is_whitespace() => {
-                let _ = stream.next();
-            }
-            _ => return true,
-        }
-    }
-
-    false
+    stream.skip_whitespace()
 }
 
 // Helper function to make sure values are followed by a correct end delimiter.
