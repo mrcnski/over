@@ -1,12 +1,11 @@
 # OVER
 
-[![Build Status](https://travis-ci.com/mrcnski/over.svg?branch=master)](https://travis-ci.com/mrcnski/over)
+[![CI](https://github.com/mrcnski/over/actions/workflows/ci.yml/badge.svg)](https://github.com/mrcnski/over/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/over.svg)](https://crates.io/crates/over)
 [![Downloads](https://img.shields.io/crates/d/over.svg)](https://crates.io/crates/over)
 [![Documentation](https://docs.rs/over/badge.svg)](https://docs.rs/over)
 [![Issues](https://img.shields.io/github/issues-raw/mrcnski/over.svg)](https://github.com/mrcnski/over/issues)
 [![LoC](https://tokei.rs/b1/github/mrcnski/over)](https://github.com/mrcnski/over)
-[![Coverage Status](https://coveralls.io/repos/github/mrcnski/over/badge.svg?branch=master)](https://coveralls.io/github/mrcnski/over?branch=master)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 OVER: a data format similar to JSON with features such as variables, includes, and type safety.
@@ -517,7 +516,3 @@ As you can see, this is much less clear than the OVER version. YAML has strange 
 Look at [this answer](https://stackoverflow.com/a/18708156) on StackExchange for an example of how unintuitive YAML is. That's not the worst of it; there is a shocking amount of weirdness in the official spec. This design disaster also makes it impossible to write an efficient parser for YAML.
 
 Finally, as seen throughout this README, OVER manages to be more powerful than YAML while being much simpler! This may strike you as a paradox, but it is just a consequence of the thoughtless design of YAML and company (don't think I've forgotten about TOML). There are options such as [StrictYAML](https://github.com/crdoconnor/strictyaml) but they are, in my opinion, just bandaids on a broken solution.
-
-## Copyright
-
-(c) 2019 Marcin Swieczkowski
