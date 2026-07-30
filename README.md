@@ -1,3 +1,6 @@
+<div align="center">
+  <img src="mascot.svg" alt="OVER mascot — a parent record beside its child record, whose first field is the ^ parent marker" width="180"/>
+
 # OVER
 
 [![CI](https://github.com/mrcnski/over/actions/workflows/ci.yml/badge.svg)](https://github.com/mrcnski/over/actions/workflows/ci.yml)
@@ -9,6 +12,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 OVER: a data format similar to JSON with features such as variables, includes, and type safety.
+
+</div>
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**

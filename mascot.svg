@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 206" width="200" height="206" role="img" aria-label="OVER mascot: a dog-eared parent page beside a small dog-eared child page whose first field is the caret parent marker">
+  <title>OVER — parent and child records</title>
+
+  <!-- sky badge background -->
+  <rect x="6" y="4" width="188" height="198" rx="28" fill="#d9e8f5"/>
+
+  <!-- ground shadow -->
+  <ellipse cx="102" cy="168" rx="62" ry="6" fill="#000000" opacity="0.07"/>
+
+  <!-- parent page -->
+  <ellipse cx="58" cy="161" rx="11" ry="5" fill="#C9C2AC"/>
+  <ellipse cx="94" cy="161" rx="11" ry="5" fill="#C9C2AC"/>
+  <path d="M52 42 H96 L114 60 V146 A14 14 0 0 1 100 160 H52 A14 14 0 0 1 38 146 V56 A14 14 0 0 1 52 42 Z" fill="#FFFDF6"/>
+  <path d="M96 42 L114 60 H96 Z" fill="#E4DECC"/>
+
+  <!-- parent fields: key + value rows -->
+  <rect x="52" y="76" width="14" height="6" rx="3" fill="#F2B441"/>
+  <rect x="72" y="76" width="30" height="6" rx="3" fill="#C3BAF5"/>
+  <rect x="52" y="96" width="14" height="6" rx="3" fill="#F2B441"/>
+  <rect x="72" y="96" width="24" height="6" rx="3" fill="#5BC8AF"/>
+  <rect x="52" y="116" width="14" height="6" rx="3" fill="#F2B441"/>
+  <rect x="72" y="116" width="32" height="6" rx="3" fill="#E86A5E"/>
+  <rect x="52" y="136" width="14" height="6" rx="3" fill="#F2B441"/>
+  <rect x="72" y="136" width="20" height="6" rx="3" fill="#9B8CFF"/>
+
+  <!-- child page -->
+  <ellipse cx="136" cy="161" rx="9" ry="4.5" fill="#C9C2AC"/>
+  <ellipse cx="160" cy="161" rx="9" ry="4.5" fill="#C9C2AC"/>
+  <path d="M136 106 H160 L172 118 V148 A12 12 0 0 1 160 160 H136 A12 12 0 0 1 124 148 V118 A12 12 0 0 1 136 106 Z" fill="#FFFDF6"/>
+  <path d="M160 106 L172 118 H160 Z" fill="#E4DECC"/>
+
+  <!-- first field: the parent marker -->
+  <path d="M134 126 l5 -6 l5 6" fill="none" stroke="#7D6EE8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="151" y="121" width="14" height="5" rx="2.5" fill="#C3BAF5"/>
+
+  <!-- inherited fields -->
+  <rect x="133" y="138" width="12" height="5" rx="2.5" fill="#F2B441"/>
+  <rect x="151" y="138" width="12" height="5" rx="2.5" fill="#5BC8AF"/>
+  <rect x="133" y="148" width="12" height="5" rx="2.5" fill="#F2B441"/>
+  <rect x="151" y="148" width="16" height="5" rx="2.5" fill="#E86A5E"/>
+</svg>
