@@ -8,43 +8,11 @@
 [![Downloads](https://img.shields.io/crates/d/over.svg)](https://crates.io/crates/over)
 [![Documentation](https://docs.rs/over/badge.svg)](https://docs.rs/over)
 [![Issues](https://img.shields.io/github/issues-raw/mrcnski/over.svg)](https://github.com/mrcnski/over/issues)
-[![LoC](https://tokei.rs/b1/github/mrcnski/over)](https://github.com/mrcnski/over)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 OVER: a data format similar to JSON with features such as variables, includes, and type safety.
 
 </div>
-
-<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
-**Table of Contents**
-
-- [OVER](#over)
-    - [About](#about)
-    - [Example](#example)
-    - [Usage](#usage)
-    - [Features](#features)
-        - [Containers](#containers)
-        - [Variables](#variables)
-        - [Parents](#parents)
-        - [Object Field Access](#object-field-access)
-        - [Arithmetic on Values and Variables](#arithmetic-on-values-and-variables)
-        - [File Includes](#file-includes)
-        - [String Substitutions](#string-substitutions)
-    - [Types](#types)
-        - [Null](#null)
-        - [Bool](#bool)
-        - [Int](#int)
-        - [Frac](#frac)
-        - [Str](#str)
-        - [Arr](#arr)
-        - [Tup](#tup)
-        - [Obj](#obj)
-    - [Todo](#todo)
-    - [What's wrong with JSON?](#whats-wrong-with-json)
-    - [What about YAML/others?](#what-about-yamlothers)
-    - [Copyright](#copyright)
-
-<!-- markdown-toc end -->
 
 ## About
 
